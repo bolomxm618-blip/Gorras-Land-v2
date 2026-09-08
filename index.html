@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gorraland.ah</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        /* Reset básico */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            color: white;
+            background-color: #050505;
+            overflow-x: hidden;
+            overflow-y: auto; 
+        }
+
+        /* PANTALLA DE INICIO */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('fondo-inicio.jpg');
+            background-size: cover;
+            background-position: center;
+            background-color: #000000;
+        }
+
+        .video-splash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            filter: brightness(35%);
+        }
+
+        .enter-btn {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid #ffffff;
+            padding: 12px 45px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            z-index: 10000;
+        }
+
+        .enter-btn:hover {
+            background: #ffffff;
+            color: #000000;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            letter-spacing: 8px;
+        }
+
+        .splash-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .video-background {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -100;
+            object-fit: cover;
+            filter: none; 
+        }
+
+        header {
+            text-align: center;
+            padding: 45px 20px 25px;
+        }
+        header h1 { 
+            font-size: 3.5rem; 
+            letter-spacing: 5px; 
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+        header p {
+            color: #888;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .productos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 70px;
+            margin-top: 10px;
+            align-items: end;
+        }
+
+        .producto-tarjeta {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        /* OCULTA TARJETAS SEGÚN BÚSQUEDA O CATEGORÍA */
+        .producto-tarjeta.oculto {
+            display: none !important;
+        }
+        
+        .producto-tarjeta:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 18px 35px rgba(255,255,255,0.08);
+        }
+
+        .producto-tarjeta .img-container {
+            width: 100%;
+            height: 280px;
+            overflow: visible;
+            border-radius: 15px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .producto-tarjeta img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.5s ease;
+            filter: drop-shadow(0 22px 22px rgba(0,0,0,0.65));
+        }
+        
+        .producto-tarjeta:hover img {
+            transform: scale(1.05);
+        }
+
+        .producto-tarjeta h3 { 
+            margin-bottom: 8px; 
+            font-size: 1.5rem; 
+            letter-spacing: 1px;
+        }
+        
+        .producto-tarjeta .precio { 
+            color: #ffffff !important; 
+            font-size: 1.55rem !important; 
+            font-weight: bold;
+            text-shadow: 0 0 14px rgba(255,255,255,0.45);
+            margin-bottom: 12px;
+        }
+
+        .comprar-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 999px;
+            border: 1.5px solid rgba(255,255,255,0.75);
+            background: rgba(0, 0, 0, 0.18);
+            color: #ffffff;
+            font-size: 1.15rem;
+            font-weight: 900;
+            letter-spacing: 5px;
+            text-decoration: none;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 0 18px rgba(255,255,255,0.14), inset 0 0 18px rgba(255,255,255,0.04);
+            transition: all 0.3s ease;
+        }
+
+        .comprar-btn::after {
+            content: "🛍";
+            font-size: 16px;
+            letter-spacing: 0;
+        }
+
+        .comprar-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 28px rgba(255, 255, 255, 0.35), inset 0 0 25px rgba(255, 255, 255, 0.08);
+        }
+    
+        .logo-tienda {
+            width: 260px;
+            max-width: 80vw;
+            height: auto;
+            display: block;
+            margin: 0 auto 8px auto;
+            filter: drop-shadow(0 0 18px rgba(255,255,255,0.25));
+            cursor: pointer;
+            user-select: none;
+        }
+
+        header p, .producto-tarjeta h3, .producto-tarjeta .precio, .comprar-btn, .enter-btn, .side-menu a, .side-menu button, .side-menu h2, .modal-content h3, .opcion-pill, .admin-input, .admin-login-btn, .search-bar {
+            font-family: 'Teko', sans-serif !important;
+        }
+
+        .enter-btn {
+            background: rgba(0,0,0,0.55) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255,255,255,0.75) !important;
+            padding: 14px 58px !important;
+            font-size: 1.9rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 8px !important;
+            text-transform: uppercase !important;
+            cursor: pointer !important;
+            transition: all .3s ease !important;
+            box-shadow: 0 0 18px rgba(255,255,255,0.10) !important;
+        }
+
+        .enter-btn:hover {
+            background: rgba(255,255,255,0.08) !important;
+            border-color: rgba(255,255,255,0.95) !important;
+            box-shadow: 0 0 24px rgba(255,255,255,0.25) !important;
+            transform: translateY(-2px) scale(1.03) !important;
+            letter-spacing: 9px !important;
+        }
+
+        /* MENÚ LATERAL Y CARRITO */
+        .menu-btn, .cart-btn {
+            position: fixed;
+            top: 25px;
+            z-index: 1002;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(0,0,0,.55);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.35);
+            cursor: pointer;
+            font-size: 26px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 18px rgba(255,255,255,.10);
+            transition: all .3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn { left: 25px; }
+        .cart-btn { right: 25px; }
+
+        .menu-btn:hover, .cart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 26px rgba(255,255,255,.25);
+        }
+
+        /* BARRA DE BÚSQUEDA INTEGRADA EN LA PARTE SUPERIOR */
+        .search-bar-container {
+            position: fixed;
+            top: 25px;
+            right: 95px;
+            z-index: 1002;
+            display: flex;
+            align-items: center;
+            background: rgba(0,0,0,0.55);
+            border: 1px solid rgba(255,255,255,0.35);
+            border-radius: 30px;
+            padding: 0 15px;
+            height: 56px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 18px rgba(255,255,255,0.10);
+            transition: all 0.3s ease;
+            width: 240px;
+        }
+
+        .search-bar-container:focus-within {
+            border-color: rgba(255,255,255,0.8);
+            box-shadow: 0 0 22px rgba(255,255,255,0.25);
+            width: 280px;
+        }
+
+        .search-bar-container input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-size: 1.3rem;
+            width: 100%;
+            letter-spacing: 1px;
+            padding-left: 5px;
+        }
+
+        .search-bar-container input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .side-menu, .cart-sidebar {
+            position: fixed;
+            top: 0;
+            width: 385px;
+            height: 100vh;
+            background: rgba(0,0,0,.96);
+            z-index: 1003;
+            transition: .35s ease;
+            padding: 38px 25px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 12px 0 35px rgba(0,0,0,.55);
+        }
+
+        .side-menu { left: -410px; border-right: 1px solid rgba(255,255,255,.12); }
+        .side-menu.active { left: 0; }
+
+        .cart-sidebar { right: -410px; border-left: 1px solid rgba(255,255,255,.12); box-shadow: -12px 0 35px rgba(0,0,0,.55); }
+        .cart-sidebar.active { right: 0; }
+
+        .side-menu h2, .cart-sidebar h2 {
+            font-size: 2.6rem;
+            letter-spacing: 1px;
+            margin-bottom: 28px;
+            color: #ffffff;
+        }
+
+        .side-menu a, .side-menu .drop-btn {
+            display: block;
+            width: 100%;
+            padding: 21px 0;
+            color: #ffffff;
+            text-decoration: none;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 1.65rem;
+            font-weight: 700;
+            letter-spacing: .5px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            transition: .25s ease;
+        }
+
+        .side-menu a:hover, .side-menu .drop-btn:hover {
+            padding-left: 12px;
+            color: #dcdcdc;
+        }
+
+        .cat-list {
+            display: none;
+            padding-left: 18px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        .cat-list.active { display: block; }
+
+        .cat-list a {
+            font-size: 1.25rem !important;
+            font-weight: 600 !important;
+            color: #cfcfcf !important;
+            padding: 12px 0 !important;
+            border-bottom: none !important;
+        }
+
+        .cart-items {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            max-height: 50vh;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .cart-item-info span {
+            display: block;
+            font-size: 0.95rem;
+            color: #aaa;
+        }
+
+        .cart-item-remove {
+            background: transparent;
+            border: none;
+            color: #ff5555;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .cart-total {
+            font-size: 1.8rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .checkout-btn {
+            background: #25D366;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .checkout-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* VENTANA MODAL PARA PRODUCTO Y ADMIN */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.85);
+            z-index: 1005;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 25px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-img-container {
+            width: 100%;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .modal-img-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.6));
+        }
+
+        .modal-content h3 {
+            font-size: 2rem;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .modal-opciones {
+            margin: 12px 0;
+            text-align: left;
+        }
+
+        .modal-opciones label {
+            display: block;
+            font-family: 'Teko', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            color: #ccc;
+        }
+
+        .grupo-opciones {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .opcion-pill {
+            flex: 1;
+            min-width: 80px;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.25s ease;
+        }
+
+        .opcion-pill:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .opcion-pill.selected {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .close-menu, .close-cart{
+            position: absolute;
+            top: 22px;
+            right: 22px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.30);
+            background: rgba(0,0,0,.55);
+            color: #ffffff;
+            font-family: 'Teko', sans-serif;
+            font-size: 2rem;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .3s ease;
+            box-shadow: 0 0 16px rgba(255,255,255,.08);
+        }
+
+        .close-menu:hover, .close-cart:hover{
+            transform: scale(1.08);
+            background: rgba(255,255,255,.08);
+        }
+
+        .logo-inicio-wrap{
+            width: min(360px, 80vw);
+            height: auto;
+            z-index: 2;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-inicio{
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 0 28px rgba(255,255,255,0.28));
+            animation: logoFlotarSuave 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFlotarSuave{
+            0%,100%{ transform: translateY(0px) scale(1); }
+            50%{ transform: translateY(-10px) scale(1.03); }
+        }
+
+        .audio-control{
+            position: fixed !important;
+            top: 25px !important;
+            right: 25px !important;
+            z-index: 1000 !important;
+            width: 56px !important;
+            height: 56px !important;
+            padding: 0 !important;
+            border: 1px solid rgba(255,255,255,.35) !important;
+            outline: none !important;
+            background: rgba(0,0,0,.55) !important;
+            border-radius: 50% !important;
+            backdrop-filter: blur(10px);
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            box-shadow: 0 0 18px rgba(255,255,255,.10) !important;
+            transition: transform .25s ease !important;
+        }
+
+        .audio-control:hover{
+            transform: scale(1.05) !important;
+            box-shadow: 0 0 26px rgba(255,255,255,.25) !important;
+        }
+
+        .audio-control .play-icon{
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 16px solid #ffffff;
+            margin-left: 3px;
+        }
+
+        .audio-control.playing .play-icon{
+            width: 16px;
+            height: 20px;
+            border: none;
+            position: relative;
+            margin-left: 0;
+        }
+
+        .audio-control.playing .play-icon::before,
+        .audio-control.playing .play-icon::after{
+            content: "";
+            position: absolute;
+            top: 0;
+            width: 5px;
+            height: 20px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+
+        .audio-control.playing .play-icon::before{ left: 0; }
+        .audio-control.playing .play-icon::after{ right: 0; }
+
+        .admin-input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1.2rem;
+            outline: none;
+            letter-spacing: 1px;
+            transition: border-color 0.3s;
+        }
+
+        .admin-input:focus {
+            border-color: #ffffff;
+        }
+
+        .admin-login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .admin-login-btn:hover {
+            background: #e0e0e0;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        @media (max-width: 768px){
+            .side-menu, .cart-sidebar { width: 84vw; left: -90vw; }
+            .side-menu.active, .cart-sidebar.active { left: 0; right: 0; }
+            .cart-sidebar { right: -90vw; left: auto; }
+            .cart-btn { right: 25px; top: 25px; }
+            .audio-control { right: 90px !important; top: 25px !important; }
+            .search-bar-container {
+                top: 90px;
+                right: 25px;
+                left: 25px;
+                width: auto !important;
+            }
+            header { padding-top: 130px; }
+        }
+    </style>
+
+    <link rel="preload" href="fondo-animado2.mp4" as="video" type="video/mp4">
+    <link rel="preload" href="fondo-animado3.mp4" as="video" type="video/mp4">
+    <link rel="preload" href="logo2.png" as="image">
+    <link rel="preload" href="cancion3.mp3" as="audio" type="audio/mpeg">
+</head>
+<body>
+
+    <!-- MENÚ LATERAL, BARRA DE BÚSQUEDA Y CARRITO -->
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    
+    <div class="search-bar-container">
+        <span style="font-size: 20px; color: rgba(255,255,255,0.7); padding-left: 2px;">🔍</span>
+        <input type="text" id="inputBuscador" placeholder="Buscar gorras..." oninput="filtrarBusqueda(this.value)">
+    </div>
+
+    <button class="cart-btn" onclick="toggleCart()">🛒</button>
+
+    <div class="side-menu" id="sideMenu">
+        <button class="close-menu" onclick="toggleMenu()">←</button>
+        <h2>Menú</h2>
+        <a href="javascript:void(0)" onclick="abrirModalAdmin()">Iniciar sesión</a>
+        <button class="drop-btn" onclick="toggleCat()">Categorías ▼</button>
+        <div class="cat-list" id="catList">
+            <a href="javascript:void(0)" onclick="filtrarCategoria('todas')">Todas</a>
+            <a href="javascript:void(0)" onclick="filtrarCategoria('snapback')">Gorras Snapback</a>
+            <a href="javascript:void(0)" onclick="filtrarCategoria('trucker')">Gorras Trucker</a>
+            <a href="javascript:void(0)" onclick="filtrarCategoria('curved')">Gorras Curved</a>
+            <a href="javascript:void(0)" onclick="filtrarCategoria('dad-hat')">Gorras Dad Hat</a>
+            <a href="javascript:void(0)" onclick="filtrarCategoria('edicion-limitada')">Edición Limitada</a>
+        </div>
+        <a href="#">Política y Privacidad</a>
+    </div>
+
+    <!-- PANEL DEL CARRITO -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <button class="close-cart" onclick="toggleCart()">✕</button>
+        <h2>Tu Carrito</h2>
+        <div class="cart-items" id="cartItemsContainer">
+            <p style="color: #777; text-align: center; margin-top: 20px;">El carrito está vacío</p>
+        </div>
+        <div class="cart-total">
+            <span>Total:</span>
+            <span id="cartTotalPrice">$0.00</span>
+        </div>
+        <button class="checkout-btn" onclick="enviarPedidoWhatsApp()">Pedir por WhatsApp</button>
+    </div>
+
+    <!-- MODAL PANEL ADMINISTRATIVO (LOGIN) -->
+    <div class="modal-overlay" id="modalAdmin">
+        <div class="modal-content">
+            <button class="close-modal" onclick="cerrarModalAdmin()">✕</button>
+            <h3 style="font-size: 2.2rem; margin-bottom: 15px;">Panel Administrativo</h3>
+            <form onsubmit="autenticarAdmin(event)">
+                <div style="text-align: left; margin-bottom: 10px;">
+                    <label style="font-family: 'Teko', sans-serif; font-size: 1.3rem; color: #ccc;">Usuario</label>
+                    <input type="text" id="adminUser" class="admin-input" placeholder="Ingresa tu usuario" required>
+                </div>
+                <div style="text-align: left; margin-bottom: 20px;">
+                    <label style="font-family: 'Teko', sans-serif; font-size: 1.3rem; color: #ccc;">Contraseña</label>
+                    <input type="password" id="adminPass" class="admin-input" placeholder="Ingresa tu contraseña" required>
+                </div>
+                <button type="submit" class="admin-login-btn">Ingresar al Panel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- VENTANA MODAL MODERNA CON BOTONES PERSONALIZADOS -->
+    <div class="modal-overlay" id="modalProducto">
+        <div class="modal-content">
+            <button class="close-modal" onclick="cerrarModal()">✕</button>
+            <div class="modal-img-container">
+                <img id="imgModal" src="" alt="Gorra">
+            </div>
+            <h3 id="tituloModal">Gorra</h3>
+            <p class="precio" style="font-size: 1.4rem; color: #fff;">$45.00</p>
+            
+            <div class="modal-opciones">
+                <!-- SELECCIÓN DE TALLA -->
+                <label>Talla:</label>
+                <div class="grupo-opciones" id="grupoTallas">
+                    <button class="opcion-pill selected" onclick="seleccionarTalla(this, '7')">7</button>
+                    <button class="opcion-pill" onclick="seleccionarTalla(this, '7 octavo')">7 octavo</button>
+                    <button class="opcion-pill" onclick="seleccionarTalla(this, '7 un cuarto')">7 un cuarto</button>
+                </div>
+
+                <!-- SELECCIÓN DE COLOR (OPCIONAL) -->
+                <div id="contenedorColorModal" style="display: none;">
+                    <label>Color:</label>
+                    <div class="grupo-opciones" id="grupoColores">
+                        <button class="opcion-pill selected" onclick="seleccionarColor(this, 'blanco', 'gorra6blanca.png')">Blanco</button>
+                        <button class="opcion-pill" onclick="seleccionarColor(this, 'rojo', 'gorra6roja.png')">Rojo</button>
+                        <button class="opcion-pill" onclick="seleccionarColor(this, 'negro', 'gorra6negra.png')">Negro</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="comprar-btn" onclick="confirmarAgregado()">Agregar al carrito</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE INICIO -->
+    <div class="splash-screen" id="splashScreen">
+        <video autoplay loop muted playsinline preload="auto" class="video-splash">
+            <source src="fondo-animado2.mp4" type="video/mp4">
+        </video>
+        <div class="logo-inicio-wrap">
+            <img src="logo2.png" alt="Logo BL" class="logo-inicio" loading="eager">
+        </div>
+        <button class="enter-btn" onclick="ingresarTienda()" style="z-index:2;">Enter</button>
+    </div>
+
+    <button class="audio-control" onclick="controlarMusica()" aria-label="Reproducir música"><span class="play-icon"></span></button>
+
+    <audio id="video-cancion" loop>
+        <source src="cancion3.mp3" type="audio/mpeg">
+    </audio>
+
+    <video autoplay loop muted playsinline preload="metadata" class="video-background">
+        <source src="fondo-animado3.mp4" type="video/mp4">
+    </video>
+
+    <header>
+        <img src="logo2.png" id="logoTiendaPrincipal" alt="Logo BL" class="logo-tienda" loading="eager" title="Doble clic o múltiples toques para abrir el panel admin">
+        <p id="subtituloHeader">Estilo único en cada detalle</p>
+    </header>
+
+    <div class="container">
+        <!-- CONTENEDOR DE PRODUCTOS DINÁMICO (VACÍO DE CÓDIGO ESTÁTICO) -->
+        <div class="productos-grid" id="gridProductos">
+            <!-- Las gorras se cargarán automáticamente desde Firebase -->
+        </div>
+    </div>
+
+    <!-- CONEXIÓN DE FIREBASE REALTIME DATABASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0p1Lgk8jRu6URN3rKH1A1uAiYvrbo8-E",
+            authDomain: "gorras-land.firebaseapp.com",
+            projectId: "gorras-land",
+            storageBucket: "gorras-land.firebasestorage.app",
+            messagingSenderId: "400722770234",
+            appId: "1:400722770234:web:2499f694ea65bbc1a63803",
+            measurementId: "G-JS8D558WD4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const productosRef = ref(database, 'gorras');
+        onValue(productosRef, (snapshot) => {
+            const data = snapshot.val();
+            const grid = document.getElementById('gridProductos');
+            grid.innerHTML = ''; 
+
+            if (data) {
+                Object.keys(data).forEach((key) => {
+                    const prod = data[key];
+                    const cat = prod.categoria || 'snapback';
+                    const precio = parseFloat(prod.precio) || 45.00;
+                    const imagen = prod.imagen || 'gorras/gorra_2.png';
+                    const nombre = prod.nombre || 'Gorra Gorraland';
+
+                    const div = document.createElement('div');
+                    div.className = 'producto-tarjeta';
+                    div.setAttribute('data-categoria', cat);
+                    div.innerHTML = `
+                        <div class="img-container">
+                            <img src="${imagen}" alt="${nombre}">
+                        </div>
+                        <h3>${nombre}</h3>
+                        <p class="precio">$${precio.toFixed(2)}</p>
+                        <button class="comprar-btn" onclick="abrirModal('${nombre}', ${precio}, '${imagen}', false)">Añadir al carrito</button>
+                    `;
+                    grid.appendChild(div);
+                });
+            } else {
+                grid.innerHTML = '<p style="text-align: center; color: #777; grid-column: 1/-1; font-size: 1.5rem; font-family: \'Teko\', sans-serif;">No hay gorras registradas en la tienda.</p>';
+            }
+        });
+    </script>
+
+    <script>
+        let carrito = [];
+        let productoActual = {};
+        let tallaSeleccionada = '7';
+        let colorSeleccionado = 'Blanco';
+        let imagenColorSeleccionado = '';
+
+        function toggleMenu(){
+            document.getElementById('sideMenu').classList.toggle('active');
+        }
+
+        function toggleCart(){
+            document.getElementById('cartSidebar').classList.toggle('active');
+        }
+
+        function toggleCat(){
+            document.getElementById('catList').classList.toggle('active');
+        }
+
+        function abrirModalAdmin() {
+            const menu = document.getElementById('sideMenu');
+            if (menu.classList.contains('active')) {
+                toggleMenu(); 
+            }
+            document.getElementById('modalAdmin').classList.add('active');
+        }
+
+        function cerrarModalAdmin() {
+            document.getElementById('modalAdmin').classList.remove('active');
+        }
+
+        function filtrarBusqueda(texto) {
+            const filtro = texto.toLowerCase().trim();
+            const productos = document.querySelectorAll('.producto-tarjeta');
+            const subtitulo = document.getElementById('subtituloHeader');
+
+            productos.forEach(prod => {
+                const nombre = prod.querySelector('h3').textContent.toLowerCase();
+                if (filtro === '' || nombre.includes(filtro)) {
+                    prod.classList.remove('oculto');
+                } else {
+                    prod.classList.add('oculto');
+                }
+            });
+
+            if (filtro !== '') {
+                subtitulo.textContent = 'Búsqueda: ' + texto;
+            } else {
+                subtitulo.textContent = 'Estilo único en cada detalle';
+            }
+        }
+
+        function autenticarAdmin(event) {
+            event.preventDefault();
+            const usuario = document.getElementById('adminUser').value;
+            const clave = document.getElementById('adminPass').value;
+
+            if (usuario === 'GorrasLand' && clave === 'AdminLand1') {
+                window.location.href = 'panel administrativo/index.html';
+            } else {
+                alert('Usuario o contraseña incorrectos.');
+            }
+        }
+
+        let conteoToquesLogo = 0;
+        let temporizadorToques;
+
+        function inicializarEventosLogo() {
+            const logo = document.getElementById('logoTiendaPrincipal');
+            if (!logo) return;
+
+            logo.addEventListener('dblclick', function() {
+                abrirModalAdmin();
+            });
+
+            logo.addEventListener('touchstart', function(e) {
+                conteoToquesLogo++;
+                clearTimeout(temporizadorToques);
+
+                if (conteoToquesLogo >= 2) {
+                    conteoToquesLogo = 0;
+                    abrirModalAdmin();
+                } else {
+                    temporizadorToques = setTimeout(() => {
+                        conteoToquesLogo = 0;
+                    }, 600);
+                }
+            }, { passive: true });
+        }
+
+        function filtrarCategoria(cat) {
+            document.getElementById('inputBuscador').value = ''; 
+            const productos = document.querySelectorAll('.producto-tarjeta');
+            const subtitulo = document.getElementById('subtituloHeader');
+            
+            productos.forEach(prod => {
+                if (cat === 'todas') {
+                    prod.classList.remove('oculto');
+                } else if (prod.getAttribute('data-categoria') === cat) {
+                    prod.classList.remove('oculto');
+                } else {
+                    prod.classList.add('oculto');
+                }
+            });
+
+            if(cat !== 'todas') {
+                subtitulo.textContent = 'Categoría: ' + cat.replace('-', ' ').toUpperCase();
+            } else {
+                subtitulo.textContent = 'Estilo único en cada detalle';
+            }
+
+            toggleMenu(); 
+        }
+
+        function abrirModal(nombre, precio, imagen, tieneColores) {
+            productoActual = { nombre, precio, imagen, tieneColores };
+            
+            document.getElementById('tituloModal').textContent = nombre;
+            document.getElementById('imgModal').src = imagen;
+            document.getElementById('modalProducto').classList.add('active');
+
+            tallaSeleccionada = '7';
+            restaurarSeleccionVisual('grupoTallas', 0);
+
+            const contenedorColor = document.getElementById('contenedorColorModal');
+            if (tieneColores) {
+                contenedorColor.style.display = 'block';
+                colorSeleccionado = 'Blanco';
+                imagenColorSeleccionado = imagen;
+                restaurarSeleccionVisual('grupoColores', 0);
+            } else {
+                contenedorColor.style.display = 'none';
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalProducto').classList.remove('active');
+        }
+
+        function seleccionarTalla(elemento, talla) {
+            tallaSeleccionada = talla;
+            actualizarClaseActiva('grupoTallas', elemento);
+        }
+
+        function seleccionarColor(elemento, colorNombre, imagenArchivo) {
+            colorSeleccionado = colorNombre.charAt(0).toUpperCase() + colorNombre.slice(1);
+            imagenColorSeleccionado = imagenArchivo;
+            document.getElementById('imgModal').src = imagenArchivo;
+            actualizarClaseActiva('grupoColores', elemento);
+        }
+
+        function actualizarClaseActiva(grupoId, elementoSeleccionado) {
+            const botones = document.getElementById(grupoId).getElementsByClassName('opcion-pill');
+            for (let btn of botones) {
+                btn.classList.remove('selected');
+            }
+            elementoSeleccionado.classList.add('selected');
+        }
+
+        function restaurarSeleccionVisual(grupoId, indice) {
+            const botones = document.getElementById(grupoId).getElementsByClassName('opcion-pill');
+            for (let i = 0; i < botones.length; i++) {
+                botones[i].classList.remove('selected');
+                if (i === indice) {
+                    botones[i].classList.add('selected');
+                }
+            }
+        }
+
+        function confirmarAgregado() {
+            let nombreFinal = productoActual.nombre;
+            let detalles = `Talla: ${tallaSeleccionada}`;
+
+            if (productoActual.tieneColores) {
+                nombreFinal = `${productoActual.nombre} (${colorSeleccionado})`;
+            }
+
+            carrito.push({ nombre: nombreFinal, precio: productoActual.precio, detalles: detalles });
+            actualizarCarrito();
+            cerrarModal();
+            toggleCart();
+        }
+
+        function eliminarDelCarrito(index) {
+            carrito.splice(index, 1);
+            actualizarCarrito();
+        }
+
+        function actualizarCarrito() {
+            const container = document.getElementById('cartItemsContainer');
+            const totalElement = document.getElementById('cartTotalPrice');
+            
+            container.innerHTML = '';
+            
+            if (carrito.length === 0) {
+                container.innerHTML = '<p style="color: #777; text-align: center; margin-top: 20px;">El carrito está vacío</p>';
+                totalElement.textContent = '$0.00';
+                return;
+            }
+
+            let total = 0;
+            carrito.forEach((item, index) => {
+                total += item.precio;
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <strong>${item.nombre}</strong>
+                            <span>${item.detalles}</span>
+                            <span>$${item.precio.toFixed(2)}</span>
+                        </div>
+                        <button class="cart-item-remove" onclick="eliminarDelCarrito(${index})">🗑</button>
+                    </div>
+                `;
+            });
+
+            totalElement.textContent = `$${total.toFixed(2)}`;
+        }
+
+        function enviarPedidoWhatsApp() {
+            if (carrito.length === 0) {
+                alert("Tu carrito está vacío.");
+                return;
+            }
+
+            let mensaje = "Hola, quiero comprar lo siguiente en Gorraland.ah:\n\n";
+            let total = 0;
+
+            carrito.forEach((item, index) => {
+                mensaje += `${index + 1}. ${item.nombre} (${item.detalles}) - $${item.precio.toFixed(2)}\n`;
+                total += item.precio;
+            });
+
+            mensaje += `\nTotal a pagar: $${total.toFixed(2)}`;
+
+            const telefono = "50300000000"; 
+            const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+            window.open(url, '_blank');
+        }
+
+        function ingresarTienda() {
+            document.getElementById("splashScreen").classList.add("splash-hidden");
+            document.body.style.overflowY = "auto";
+            var musicaVideo = document.getElementById("video-cancion");
+            musicaVideo.play();
+            var boton = document.querySelector(".audio-control");
+            boton.classList.add("playing");
+        }
+
+        function controlarMusica() {
+            var musicaVideo = document.getElementById("video-cancion");
+            var boton = document.querySelector(".audio-control");
+            
+            if (musicaVideo.paused) {
+                musicaVideo.play();
+                boton.classList.add("playing");
+            } else {
+                musicaVideo.pause();
+                boton.classList.remove("playing");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            inicializarEventosLogo();
+        });
+    </script>
+</body>
+</html>

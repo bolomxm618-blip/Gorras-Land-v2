@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Gorraland Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-green: #00ff88;
+            --accent-green-glow: rgba(0, 255, 136, 0.35);
+            --accent-red: #ff4757;
+            --accent-gold: #ffa502;
+            --accent-blue: #00d2d3;
+            --text-main: #f5f6fa;
+            --text-muted: #a4b0be;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #050608; 
+            background-image: url('Gorras Land fondo.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
+            background-size: 100% 100%; /* Se adapta exacto al tamaño del monitor */
+            color: var(--text-main); 
+            min-height: 100vh; 
+            display: flex; 
+            overflow-x: hidden; 
+        }
+
+        @media (max-width: 768px) {
+            body {
+                background-size: cover; /* Se ajusta mejor en celulares */
+                flex-direction: column;
+            }
+        }
+
+        /* Capa oscura translúcida ligera para mantener legibilidad */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 6, 8, 0.72);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        aside, main { position: relative; z-index: 1; }
+
+        #toast {
+            visibility: hidden;
+            min-width: 300px;
+            background: rgba(12, 14, 20, 0.85);
+            color: #fff;
+            text-align: center;
+            border-radius: 14px;
+            padding: 16px 22px;
+            position: fixed;
+            z-index: 1000;
+            right: 30px;
+            top: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 25px var(--accent-green-glow);
+            border-left: 6px solid var(--accent-green);
+            font-weight: 500;
+            transform: translateX(130%);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(10px);
+        }
+
+        #toast.show { visibility: visible; transform: translateX(0); }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2000; opacity: 0; pointer-events: none; transition: 0.35s ease;
+        }
+
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+        .modal-card {
+            background: rgba(12, 14, 20, 0.9);
+            border: 1px solid rgba(255, 71, 87, 0.4);
+            padding: 35px; border-radius: 22px; max-width: 420px; text-align: center;
+            box-shadow: 0 0 40px rgba(255, 71, 87, 0.3);
+            backdrop-filter: blur(15px);
+            transform: scale(0.75); transition: 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.active .modal-card { transform: scale(1); }
+        .modal-btns { display: flex; gap: 12px; margin-top: 25px; justify-content: center; }
+
+        /* SIN BORDES Y TOTALMENTE TRANSPARENTE / CRISTAL */
+        .sidebar {
+            width: 280px;
+            background: rgba(10, 12, 18, 0.45);
+            backdrop-filter: blur(16px);
+            border-right: none;
+            display: flex; flex-direction: column; padding: 25px 20px;
+        }
+
+        .sidebar .brand {
+            display: flex; align-items: center; gap: 14px;
+            margin-bottom: 35px; padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .sidebar .brand img {
+            width: 48px; height: 48px; object-fit: contain;
+            filter: drop-shadow(0 0 10px var(--accent-green-glow));
+        }
+
+        .sidebar .brand span {
+            font-family: 'Teko', sans-serif; font-size: 2.4rem;
+            letter-spacing: 2px; text-transform: uppercase; color: #fff; line-height: 1;
+        }
+
+        .sidebar-menu { display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+
+        .menu-btn {
+            background: transparent; border: none; color: var(--text-muted);
+            padding: 14px 18px; border-radius: 14px; font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem; font-weight: 500; display: flex; align-items: center; gap: 14px;
+            cursor: pointer; transition: all 0.3s ease; position: relative;
+        }
+
+        .menu-btn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; transform: translateX(6px); }
+
+        .menu-btn.active {
+            background: rgba(0, 255, 136, 0.1); color: #fff;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
+        }
+
+        .menu-btn.active::before {
+            content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px;
+            background: var(--accent-green); box-shadow: 0 0 12px var(--accent-green);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .btn-logout {
+            margin-top: auto; background: rgba(255, 71, 87, 0.08); color: var(--accent-red);
+            border: none; padding: 14px; border-radius: 14px; font-family: 'Teko', sans-serif;
+            font-size: 1.4rem; letter-spacing: 1px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: 8px; text-decoration: none; transition: 0.3s ease;
+        }
+
+        .btn-logout:hover { background: var(--accent-red); color: #fff; box-shadow: 0 0 25px rgba(255, 71, 87, 0.5); }
+
+        .main-content {
+            flex-grow: 1; padding: 35px; overflow-y: auto; max-height: 100vh;
+        }
+
+        .top-header h1 { 
+            font-family: 'Teko', sans-serif; font-size: 3.2rem; letter-spacing: 1px; line-height: 1;
+            color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px; margin-bottom: 30px;
+        }
+
+        /* TARJETAS TRANSPARENTES SIN BORDES */
+        .stat-card, .form-card, .table-card {
+            background: rgba(12, 14, 20, 0.45);
+            backdrop-filter: blur(14px);
+            border: none;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .stat-card { padding: 24px; border-radius: 20px; display: flex; align-items: center; gap: 18px; }
+
+        .stat-icon {
+            width: 58px; height: 58px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
+        }
+
+        .stat-info h4 { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+        .stat-info p { font-family: 'Teko', sans-serif; font-size: 2.5rem; line-height: 1; margin-top: 4px; font-weight: 600; color: #fff; }
+
+        .tab-content { display: none; animation: fadeIn 0.45s ease; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard-layout {
+            display: grid; grid-template-columns: 400px 1fr; gap: 25px; align-items: start;
+        }
+
+        @media (max-width: 1100px) { .dashboard-layout { grid-template-columns: 1fr; } }
+
+        .form-card { padding: 28px; border-radius: 20px; position: sticky; top: 20px; }
+
+        .form-card h2 { 
+            font-family: 'Teko', sans-serif; font-size: 2rem; margin-bottom: 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 10px; 
+            display: flex; justify-content: space-between; align-items: center; color: #fff;
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+        
+        .form-group input, .form-group select {
+            width: 100%; padding: 13px 15px;
+            background: rgba(6, 8, 12, 0.6);
+            border: none;
+            border-radius: 12px; color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.9rem; outline: none;
+        }
+
+        .form-group input:focus, .form-group select:focus { 
+            box-shadow: 0 0 15px var(--accent-green-glow); 
+            background: rgba(6, 8, 12, 0.85);
+        }
+
+        .preview-box {
+            width: 100%; height: 150px;
+            background: rgba(0,0,0,0.2);
+            border: 2px dashed rgba(255,255,255,0.15);
+            border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin-bottom: 12px; overflow: hidden; cursor: pointer; position: relative;
+        }
+
+        .preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; display: none; z-index: 2; }
+
+        .toggle-switch { display: flex; align-items: center; gap: 12px; cursor: pointer; margin-top: 12px; user-select: none; }
+
+        .btn-submit {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, var(--accent-green), #00b359);
+            color: #000; border: none; border-radius: 14px;
+            font-family: 'Teko', sans-serif; font-size: 1.6rem; font-weight: 700;
+            letter-spacing: 1px; cursor: pointer; transition: 0.35s ease; margin-top: 15px;
+            box-shadow: 0 6px 20px var(--accent-green-glow);
+        }
+
+        .btn-cancel {
+            width: 100%; padding: 11px; background: transparent; color: var(--text-muted);
+            border: none; border-radius: 12px; font-size: 0.85rem;
+            cursor: pointer; margin-top: 10px; display: none;
+        }
+
+        .table-card { padding: 28px; border-radius: 20px; }
+
+        .table-header-tools {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 22px; gap: 15px; flex-wrap: wrap;
+        }
+
+        .search-box-wrapper { position: relative; flex-grow: 1; max-width: 340px; }
+        .search-box {
+            background: rgba(6, 8, 12, 0.6); border: none;
+            padding: 11px 15px 11px 40px; border-radius: 12px; color: #fff; font-size: 0.85rem; width: 100%; outline: none;
+        }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; padding: 15px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        td { padding: 15px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.9rem; vertical-align: middle; }
+        tr:hover td { background: rgba(255, 255, 255, 0.03); }
+
+        .table-img-preview { width: 52px; height: 52px; border-radius: 12px; object-fit: contain; background: rgba(0,0,0,0.3); padding: 4px; }
+
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        .badge-available { background: rgba(0, 255, 136, 0.1); color: var(--accent-green); }
+        .badge-out { background: rgba(255, 71, 87, 0.1); color: var(--accent-red); }
+        .badge-discount { background: rgba(255, 165, 2, 0.1); color: var(--accent-gold); }
+
+        .action-btns { display: flex; gap: 8px; }
+        .btn-action {
+            background: rgba(255,255,255,0.05); border: none;
+            color: #fff; padding: 9px 13px; border-radius: 10px; cursor: pointer; transition: 0.25s ease;
+        }
+        .btn-delete:hover { background: var(--accent-red); }
+    </style>
+</head>
+<body>
+
+    <div id="toast">Acción completada con éxito</div>
+
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-card">
+            <h3 style="font-family:'Teko'; font-size: 2.2rem; color: var(--accent-red);">¿ELIMINAR PRODUCTO?</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 8px;">Esta acción borrará permanentemente la gorra de tu inventario en la nube.</p>
+            <div class="modal-btns">
+                <button class="btn-action" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-action btn-delete" id="btnConfirmDelete" style="background: rgba(255,71,87,0.2); color: var(--accent-red);">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <aside class="sidebar">
+        <div class="brand">
+            <img src="../logo2.png" alt="Gorraland Logo">
+            <span>GORRALAND</span>
+        </div>
+        <nav class="sidebar-menu">
+            <button class="menu-btn active" onclick="verTab(this, 'productos')">
+                <span>🧢</span> Inventario Gorras
+            </button>
+            <button class="menu-btn" onclick="verTab(this, 'pedidos')">
+                <span>📦</span> Pedidos / Ventas
+            </button>
+            <button class="menu-btn" onclick="verTab(this, 'clientes')">
+                <span>👥</span> Clientes
+            </button>
+        </nav>
+        <a class="btn-logout" href="../index.html">
+            <span>←</span> Volver a la Tienda
+        </a>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div>
+                <h1>PANEL DE CONTROL</h1>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Gestiona tus gorras, ofertas con temporizador y pedidos en tiempo real.</p>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(0, 210, 211, 0.1); color: var(--accent-blue);">🧢</div>
+                <div class="stat-info">
+                    <h4>Total Gorras</h4>
+                    <p id="statTotalGorras">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(0, 255, 136, 0.1); color: var(--accent-green);">💰</div>
+                <div class="stat-info">
+                    <h4>Ventas del Mes</h4>
+                    <p id="statVentas">$0.00</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(255, 165, 2, 0.1); color: var(--accent-gold);">🏷️</div>
+                <div class="stat-info">
+                    <h4>Ofertas Activas</h4>
+                    <p id="statOfertas">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(255, 71, 87, 0.1); color: var(--accent-red);">👥</div>
+                <div class="stat-info">
+                    <h4>Clientes Activos</h4>
+                    <p id="statClientes">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: PRODUCTOS -->
+        <section id="tab-productos" class="tab-content active">
+            <div class="dashboard-layout">
+                <div class="form-card">
+                    <h2 id="tituloForm">
+                        <span>Nueva Gorra</span>
+                        <span style="font-size: 1.2rem; cursor: pointer;" onclick="resetForm()" title="Limpiar formulario">🔄</span>
+                    </h2>
+                    <form id="formGorra" onsubmit="guardarGorra(event)">
+                        <input type="hidden" id="prodKey">
+                        
+                        <div class="form-group">
+                            <label>Imagen de la Gorra</label>
+                            <div class="preview-box" id="dropZone" onclick="document.getElementById('prodImg').click()">
+                                <span id="previewPlaceholder" style="color:var(--text-muted); font-size:0.8rem; text-align: center;">
+                                    📸<br>Haz clic o arrastra una foto aquí
+                                </span>
+                                <img id="previewImg" alt="Preview">
+                            </div>
+                            <input type="file" id="prodImg" accept="image/*" style="display: none;" onchange="mostrarPreview(this)">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nombre de la Gorra</label>
+                            <input type="text" id="prodNombre" placeholder="Ej: Gorra LA Special Blue" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Precio Normal ($)</label>
+                            <input type="number" step="0.01" id="prodPrecio" placeholder="45.00" required>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>% Descuento</label>
+                                <input type="number" id="prodDesc" min="0" max="100" placeholder="Ej: 20">
+                            </div>
+                            <div class="form-group">
+                                <label>Duración (Mins)</label>
+                                <input type="number" id="prodTiempo" min="0" placeholder="Ej: 1440 (24h)">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="prodAgotado" style="width: 18px; height: 18px; accent-color: var(--accent-red);">
+                                <span>Marcar como AGOTADO</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-submit" id="btnGuardar">GUARDAR PRODUCTO</button>
+                        <button type="button" class="btn-cancel" id="btnCancelar" onclick="resetForm()">Cancelar Edición</button>
+                    </form>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header-tools">
+                        <h2 style="font-family:'Teko'; font-size: 1.8rem; color: #fff;">Inventario de Gorras</h2>
+                        <div class="search-box-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-box" placeholder="Buscar gorra por nombre..." onkeyup="filtrarGorras(this.value)">
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Imagen</th>
+                                    <th>Gorra</th>
+                                    <th>Precio</th>
+                                    <th>Estado / Oferta</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaInventario"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: PEDIDOS -->
+        <section id="tab-pedidos" class="tab-content">
+            <div class="table-card">
+                <h2 style="font-family:'Teko'; font-size: 1.8rem; margin-bottom: 20px; color: #fff;">Historial de Pedidos y Ventas</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Pedido</th>
+                            <th>Cliente</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaPedidos"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB: CLIENTES -->
+        <section id="tab-clientes" class="tab-content">
+            <div class="table-card">
+                <h2 style="font-family:'Teko'; font-size: 1.8rem; margin-bottom: 20px; color: #fff;">Directorio de Clientes</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>WhatsApp</th>
+                            <th>Compras</th>
+                            <th>Última Compra</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaClientes"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- FIREBASE REALTIME DATABASE SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0p1Lgk8jRu6URN3rKH1A1uAiYvrbo8-E",
+            authDomain: "gorras-land.firebaseapp.com",
+            projectId: "gorras-land",
+            storageBucket: "gorras-land.firebasestorage.app",
+            messagingSenderId: "400722770234",
+            appId: "1:400722770234:web:2499f694ea65bbc1a63803",
+            measurementId: "G-JS8D558WD4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        let productosMapa = {};
+        let keyAEliminar = null;
+
+        window.showToast = function(mensaje) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        window.verTab = function(btn, tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        window.mostrarPreview = function(input) {
+            const preview = document.getElementById('previewImg');
+            const placeholder = document.getElementById('previewPlaceholder');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        const gorrasRef = ref(database, 'gorras');
+        onValue(gorrasRef, (snapshot) => {
+            const data = snapshot.val();
+            const tbody = document.getElementById('tablaInventario');
+            tbody.innerHTML = '';
+            productosMapa = {};
+            let ofertasContador = 0;
+
+            if (!data) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">No hay gorras en inventario.</td></tr>`;
+                document.getElementById('statTotalGorras').textContent = 0;
+                document.getElementById('statOfertas').textContent = 0;
+                return;
+            }
+
+            productosMapa = data;
+            const keys = Object.keys(data);
+            document.getElementById('statTotalGorras').textContent = keys.length;
+
+            keys.forEach((key) => {
+                const p = data[key];
+                const descuento = parseInt(p.descuento || 0);
+                if (descuento > 0) ofertasContador++;
+
+                let estadoHTML = p.agotado 
+                    ? `<span class="badge badge-out">Agotado</span>` 
+                    : `<span class="badge badge-available">Disponible</span>`;
+
+                if (descuento > 0) {
+                    estadoHTML += ` <span class="badge badge-discount">-${descuento}%</span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><img src="${p.imagen || ''}" class="table-img-preview" alt="gorra"></td>
+                        <td><strong>${p.nombre || 'Sin nombre'}</strong></td>
+                        <td>$${parseFloat(p.precio || 0).toFixed(2)}</td>
+                        <td>${estadoHTML}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-action" onclick="editar('${key}')" title="Editar">✏️</button>
+                                <button class="btn-action btn-delete" onclick="abrirModalDelete('${key}')" title="Eliminar" style="color:var(--accent-red);">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('statOfertas').textContent = ofertasContador;
+        });
+
+        const pedidosRef = ref(database, 'pedidos');
+        onValue(pedidosRef, (snapshot) => {
+            const data = snapshot.val();
+            const tbodyPedidos = document.getElementById('tablaPedidos');
+            tbodyPedidos.innerHTML = '';
+            let totalVentasMes = 0;
+
+            if (!data) {
+                tbodyPedidos.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">No hay pedidos registrados.</td></tr>`;
+                document.getElementById('statVentas').textContent = "$0.00";
+                return;
+            }
+
+            Object.keys(data).forEach((key) => {
+                const pedido = data[key];
+                totalVentasMes += Number(pedido.total || 0);
+
+                let badgeClass = 'badge-discount';
+                if (pedido.estado === 'Completado') badgeClass = 'badge-available';
+                if (pedido.estado === 'Cancelado') badgeClass = 'badge-out';
+
+                tbodyPedidos.innerHTML += `
+                    <tr>
+                        <td>${pedido.idPedido || key.substring(0, 6)}</td>
+                        <td>${pedido.cliente || 'Desconocido'}</td>
+                        <td>${pedido.productos || 'Gorra'}</td>
+                        <td>$${Number(pedido.total || 0).toFixed(2)}</td>
+                        <td><span class="badge ${badgeClass}">${pedido.estado || 'Pendiente'}</span></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('statVentas').textContent = `$${totalVentasMes.toFixed(2)}`;
+        });
+
+        const clientesRef = ref(database, 'clientes');
+        onValue(clientesRef, (snapshot) => {
+            const data = snapshot.val();
+            const tbodyClientes = document.getElementById('tablaClientes');
+            tbodyClientes.innerHTML = '';
+
+            if (!data) {
+                tbodyClientes.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No hay clientes registrados.</td></tr>`;
+                document.getElementById('statClientes').textContent = 0;
+                return;
+            }
+
+            const keys = Object.keys(data);
+            document.getElementById('statClientes').textContent = keys.length;
+
+            keys.forEach((key) => {
+                const cliente = data[key];
+                tbodyClientes.innerHTML += `
+                    <tr>
+                        <td>${cliente.nombre || 'Sin nombre'}</td>
+                        <td>${cliente.whatsapp || 'No registrado'}</td>
+                        <td>${cliente.compras || 0} Gorras</td>
+                        <td>${cliente.ultimaCompra || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+        });
+
+        window.guardarGorra = function(e) {
+            e.preventDefault();
+            const key = document.getElementById('prodKey').value;
+            const nombre = document.getElementById('prodNombre').value;
+            const precio = parseFloat(document.getElementById('prodPrecio').value);
+            const agotado = document.getElementById('prodAgotado').checked;
+            const descuento = parseInt(document.getElementById('prodDesc').value) || 0;
+            const tiempoMinutos = parseInt(document.getElementById('prodTiempo').value) || 0;
+            const fileInput = document.getElementById('prodImg');
+
+            let tiempoFin = 0;
+            if (tiempoMinutos > 0) {
+                tiempoFin = new Date().getTime() + (tiempoMinutos * 60 * 1000);
+            }
+
+            const procesar = (imgSrc) => {
+                const item = {
+                    nombre,
+                    precio,
+                    agotado,
+                    descuento,
+                    tiempoFin: tiempoFin > 0 ? tiempoFin : (key && productosMapa[key] ? productosMapa[key].tiempoFin || 0 : 0)
+                };
+                item.imagen = imgSrc || (key ? productosMapa[key].imagen : '../gorras/gorra_2.png');
+
+                if (key !== "") {
+                    set(ref(database, 'gorras/' + key), item)
+                        .then(() => showToast("Gorra actualizada con éxito"))
+                        .catch(err => console.error(err));
+                } else {
+                    const nuevaRef = push(ref(database, 'gorras'));
+                    set(nuevaRef, item)
+                        .then(() => showToast("Nueva gorra guardada con éxito"))
+                        .catch(err => console.error(err));
+                }
+                resetForm();
+            };
+
+            if (fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => procesar(e.target.result);
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                procesar(null);
+            }
+        }
+
+        window.resetForm = function() {
+            document.getElementById('formGorra').reset();
+            document.getElementById('prodKey').value = "";
+            document.getElementById('previewImg').style.display = "none";
+            document.getElementById('previewPlaceholder').style.display = "block";
+            document.getElementById('tituloForm').querySelector('span').textContent = "Nueva Gorra";
+            document.getElementById('btnGuardar').textContent = "GUARDAR PRODUCTO";
+            document.getElementById('btnCancelar').style.display = "none";
+        }
+
+        window.editar = function(key) {
+            const p = productosMapa[key];
+            if (!p) return;
+
+            document.getElementById('prodKey').value = key;
+            document.getElementById('prodNombre').value = p.nombre || '';
+            document.getElementById('prodPrecio').value = p.precio || '';
+            document.getElementById('prodAgotado').checked = p.agotado || false;
+            document.getElementById('prodDesc').value = p.descuento || '';
+            
+            if (p.tiempoFin) {
+                const restanteMins = Math.max(0, Math.floor((p.tiempoFin - new Date().getTime()) / 60000));
+                document.getElementById('prodTiempo').value = restanteMins;
+            } else {
+                document.getElementById('prodTiempo').value = '';
+            }
+            
+            if (p.imagen) {
+                document.getElementById('previewImg').src = p.imagen;
+                document.getElementById('previewImg').style.display = "block";
+                document.getElementById('previewPlaceholder').style.display = "none";
+            }
+
+            document.getElementById('tituloForm').querySelector('span').textContent = "Editar Gorra";
+            document.getElementById('btnGuardar').textContent = "ACTUALIZAR PRODUCTO";
+            document.getElementById('btnCancelar').style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.abrirModalDelete = function(key) {
+            keyAEliminar = key;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        window.cerrarModal = function() {
+            document.getElementById('confirmModal').classList.remove('active');
+            keyAEliminar = null;
+        }
+
+        document.getElementById('btnConfirmDelete').onclick = function() {
+            if (keyAEliminar !== null) {
+                remove(ref(database, 'gorras/' + keyAEliminar))
+                    .then(() => {
+                        cerrarModal();
+                        showToast("Producto eliminado");
+                    })
+                    .catch(err => console.error(err));
+            }
+        };
+
+        window.filtrarGorras = function(query) {
+            const q = query.toLowerCase();
+            const filas = document.querySelectorAll('#tablaInventario tr');
+            filas.forEach(f => {
+                if (f.children.length < 2) return;
+                const nombre = f.children[1].textContent.toLowerCase();
+                f.style.display = nombre.includes(q) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
