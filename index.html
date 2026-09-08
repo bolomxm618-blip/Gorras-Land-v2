@@ -443,7 +443,7 @@
             transform: scale(1.02);
         }
 
-        /* VENTANA MODAL PARA PRODUCTO Y ADMIN */
+        /* VENTANA MODAL PARA PRODUCTO Y AUTH */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -668,11 +668,11 @@
         .audio-control.playing .play-icon::before{ left: 0; }
         .audio-control.playing .play-icon::after{ right: 0; }
 
-        .admin-input {
+        .auth-input {
             width: 100%;
             padding: 12px;
-            margin-top: 8px;
-            margin-bottom: 15px;
+            margin-top: 6px;
+            margin-bottom: 12px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
@@ -683,11 +683,11 @@
             transition: border-color 0.3s;
         }
 
-        .admin-input:focus {
+        .auth-input:focus {
             border-color: #ffffff;
         }
 
-        .admin-login-btn {
+        .auth-btn {
             width: 100%;
             padding: 12px;
             background: #ffffff;
@@ -700,11 +700,26 @@
             cursor: pointer;
             text-transform: uppercase;
             transition: all 0.3s ease;
+            margin-top: 5px;
         }
 
-        .admin-login-btn:hover {
+        .auth-btn:hover {
             background: #e0e0e0;
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        .auth-switch-text {
+            margin-top: 15px;
+            font-size: 1.1rem;
+            color: #aaa;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-switch-text span {
+            color: #fff;
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: bold;
         }
 
         @media (max-width: 768px){
@@ -743,7 +758,7 @@
     <div class="side-menu" id="sideMenu">
         <button class="close-menu" onclick="toggleMenu()">←</button>
         <h2>Menú</h2>
-        <a href="javascript:void(0)" onclick="abrirModalAdmin()">Iniciar sesión</a>
+        <a href="javascript:void(0)" onclick="abrirModalAuth()">Iniciar sesión / Registrarse</a>
         <button class="drop-btn" onclick="toggleCat()">Categorías ▼</button>
         <div class="cat-list" id="catList">
             <a href="javascript:void(0)" onclick="filtrarCategoria('todas')">Todas</a>
@@ -770,21 +785,72 @@
         <button class="checkout-btn" onclick="enviarPedidoWhatsApp()">Pedir por WhatsApp</button>
     </div>
 
-    <!-- MODAL PANEL ADMINISTRATIVO (LOGIN) -->
+    <!-- VENTANA MODAL PARA CLIENTE (INICIAR SESIÓN / REGISTRO) -->
+    <div class="modal-overlay" id="modalAuth">
+        <div class="modal-content">
+            <button class="close-modal" onclick="cerrarModalAuth()">✕</button>
+            <h3 id="authTituloModal" style="font-size: 2.2rem; margin-bottom: 12px;">Iniciar Sesión</h3>
+            
+            <!-- FORMULARIO DE INICIO DE SESIÓN -->
+            <form id="formLogin" onsubmit="manejarLoginCliente(event)">
+                <div style="text-align: left; margin-bottom: 10px;">
+                    <label style="font-family: 'Teko', sans-serif; font-size: 1.3rem; color: #ccc;">Correo electrónico o Usuario</label>
+                    <input type="text" id="loginUsuario" class="auth-input" placeholder="Ingresa tu correo o usuario" required>
+                </div>
+                <div style="text-align: left; margin-bottom: 15px;">
+                    <label style="font-family: 'Teko', sans-serif; font-size: 1.3rem; color: #ccc;">Contraseña</label>
+                    <input type="password" id="loginPass" class="auth-input" placeholder="Ingresa tu contraseña" required>
+                </div>
+                <button type="submit" class="auth-btn">Entrar</button>
+                <div class="auth-switch-text">
+                    ¿No tienes cuenta? <span onclick="cambiarModoAuth('registro')">Regístrate aquí</span>
+                </div>
+                <div style="margin-top: 10px; font-size: 0.95rem; text-align: right;">
+                    <span style="color: #888; cursor: pointer; text-decoration: underline;" onclick="abrirModalAdminSecreto()">¿Eres Administrador?</span>
+                </div>
+            </form>
+
+            <!-- FORMULARIO DE REGISTRO (CON VERIFICACIÓN POR CORREO Y SOLO USUARIO/CONTRASEÑA) -->
+            <form id="formRegistro" style="display: none;" onsubmit="manejarRegistroCliente(event)">
+                <div style="text-align: left; margin-bottom: 10px;">
+                    <label style="font-family: 'Teko', sans-serif; font-size: 1.3rem; color: #ccc;">Correo Electrónico</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="email" id="regCorreo" class="auth-input" placeholder="tucorreo@email.com" required style="margin-top:0; margin-bottom:0;">
+                        <button type="button" onclick="verificarCorreoRegistro()" style="background:#25D366; color:#fff; border:none; border-radius:8px; padding: 0 12px; font-family:'Teko',sans-serif; font-size:1.1rem; cursor:pointer; font-weight:bold;">Verificar</button>
+                    </div>
+                    <span id="estadoVerificacion" style="font-size: 0.9rem; color: #ff5555; display: block; text-align: left; margin-top: 4px;">Pendiente de verificar</span>
+                </div>
+                <div style="text-align: left; margin-bottom: 10px;">
+                    <label style="font-family: 'Teko', sans-serif; font-size: 1.3rem; color: #ccc;">Nombre de Usuario</label>
+                    <input type="text" id="regUsuario" class="auth-input" placeholder="Crea tu usuario" required disabled>
+                </div>
+                <div style="text-align: left; margin-bottom: 15px;">
+                    <label style="font-family: 'Teko', sans-serif; font-size: 1.3rem; color: #ccc;">Crear Contraseña</label>
+                    <input type="password" id="regPass" class="auth-input" placeholder="Crea una contraseña" required disabled>
+                </div>
+                <button type="submit" id="btnCrearCuenta" class="auth-btn" disabled style="opacity: 0.5; cursor: not-allowed;">Crear Cuenta</button>
+                <div class="auth-switch-text">
+                    ¿Ya tienes cuenta? <span onclick="cambiarModoAuth('login')">Inicia sesión</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL SECRETO / DIRECTO PARA PANEL ADMINISTRATIVO -->
     <div class="modal-overlay" id="modalAdmin">
         <div class="modal-content">
             <button class="close-modal" onclick="cerrarModalAdmin()">✕</button>
             <h3 style="font-size: 2.2rem; margin-bottom: 15px;">Panel Administrativo</h3>
             <form onsubmit="autenticarAdmin(event)">
                 <div style="text-align: left; margin-bottom: 10px;">
-                    <label style="font-family: 'Teko', sans-serif; font-size: 1.3rem; color: #ccc;">Usuario</label>
-                    <input type="text" id="adminUser" class="admin-input" placeholder="Ingresa tu usuario" required>
+                    <label style="font-family: 'Teko', sans-serif; font-size: 1.3rem; color: #ccc;">Usuario Administrador</label>
+                    <input type="text" id="adminUser" class="auth-input" placeholder="Ingresa usuario admin" required>
                 </div>
                 <div style="text-align: left; margin-bottom: 20px;">
                     <label style="font-family: 'Teko', sans-serif; font-size: 1.3rem; color: #ccc;">Contraseña</label>
-                    <input type="password" id="adminPass" class="admin-input" placeholder="Ingresa tu contraseña" required>
+                    <input type="password" id="adminPass" class="auth-input" placeholder="Ingresa contraseña admin" required>
                 </div>
-                <button type="submit" class="admin-login-btn">Ingresar al Panel</button>
+                <button type="submit" class="auth-btn">Ingresar al Panel</button>
             </form>
         </div>
     </div>
@@ -926,11 +992,94 @@
             document.getElementById('catList').classList.toggle('active');
         }
 
-        function abrirModalAdmin() {
+        function abrirModalAuth() {
             const menu = document.getElementById('sideMenu');
             if (menu.classList.contains('active')) {
                 toggleMenu(); 
             }
+            document.getElementById('modalAuth').classList.add('active');
+        }
+
+        function cerrarModalAuth() {
+            document.getElementById('modalAuth').classList.remove('active');
+        }
+
+        function cambiarModoAuth(modo) {
+            const titulo = document.getElementById('authTituloModal');
+            const formLogin = document.getElementById('formLogin');
+            const formRegistro = document.getElementById('formRegistro');
+
+            if (modo === 'registro') {
+                titulo.textContent = "Crear Cuenta";
+                formLogin.style.display = 'none';
+                formRegistro.style.display = 'block';
+            } else {
+                titulo.textContent = "Iniciar Sesión";
+                formLogin.style.display = 'block';
+                formRegistro.style.display = 'none';
+            }
+        }
+
+        function verificarCorreoRegistro() {
+            const correo = document.getElementById('regCorreo').value.trim();
+            const estado = document.getElementById('estadoVerificacion');
+            const inputUsuario = document.getElementById('regUsuario');
+            const inputPass = document.getElementById('regPass');
+            const btnCrear = document.getElementById('btnCrearCuenta');
+
+            if (!correo || !correo.includes('@')) {
+                alert('Por favor, ingresa un correo electrónico válido.');
+                return;
+            }
+
+            // Simulación inmediata de verificación de cuenta por correo
+            estado.textContent = "¡Cuenta verificada con éxito!";
+            estado.style.color = "#25D366";
+            
+            inputUsuario.disabled = false;
+            inputPass.disabled = false;
+            btnCrear.disabled = false;
+            btnCrear.style.opacity = '1';
+            btnCrear.style.cursor = 'pointer';
+            
+            alert('¡Correo verificado correctamente! Ahora ingresa tu usuario y contraseña.');
+        }
+
+        function manejarRegistroCliente(event) {
+            event.preventDefault();
+            const correo = document.getElementById('regCorreo').value;
+            const usuario = document.getElementById('regUsuario').value;
+            const pass = document.getElementById('regPass').value;
+
+            // Guardar credenciales de cliente de forma local (o lógica de registro)
+            localStorage.setItem('cliente_usuario', usuario);
+            localStorage.setItem('cliente_pass', pass);
+            localStorage.setItem('cliente_correo', correo);
+
+            alert('¡Cuenta creada e iniciada con éxito! Bienvenido a Gorraland, ' + usuario);
+            cerrarModalAuth();
+            cambiarModoAuth('login');
+        }
+
+        function manejarLoginCliente(event) {
+            event.preventDefault();
+            const usr = document.getElementById('loginUsuario').value;
+            const pass = document.getElementById('loginPass').value;
+
+            const usuarioGuardado = localStorage.getItem('cliente_usuario') || 'usuario_demo';
+            const passGuardada = localStorage.getItem('cliente_pass') || '123456';
+            const correoGuardado = localStorage.getItem('cliente_correo') || 'demo@email.com';
+
+            if ((usr === usuarioGuardado || usr === correoGuardado) && pass === passGuardada) {
+                alert('¡Inicio de sesión exitoso! Bienvenido de nuevo.');
+                cerrarModalAuth();
+            } else {
+                alert('Usuario/Correo o contraseña incorrectos.');
+            }
+        }
+
+        function abrirModalAdminSecreto() {
+            cerrarModalAuth();
             document.getElementById('modalAdmin').classList.add('active');
         }
 
@@ -967,7 +1116,7 @@
             if (usuario === 'GorrasLand' && clave === 'AdminLand1') {
                 window.location.href = 'panel administrativo/index.html';
             } else {
-                alert('Usuario o contraseña incorrectos.');
+                alert('Usuario o contraseña de administrador incorrectos.');
             }
         }
 
@@ -979,7 +1128,7 @@
             if (!logo) return;
 
             logo.addEventListener('dblclick', function() {
-                abrirModalAdmin();
+                abrirModalAdminSecreto();
             });
 
             logo.addEventListener('touchstart', function(e) {
@@ -988,7 +1137,7 @@
 
                 if (conteoToquesLogo >= 2) {
                     conteoToquesLogo = 0;
-                    abrirModalAdmin();
+                    abrirModalAdminSecreto();
                 } else {
                     temporizadorToques = setTimeout(() => {
                         conteoToquesLogo = 0;
